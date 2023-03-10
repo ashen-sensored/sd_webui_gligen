@@ -110,12 +110,12 @@ def center_crop(img, HW=None, tgt_size=(512, 512)):
     return np.array(img)
 
 
-def draw_box(boxes=[], texts=[], img=None):
+def draw_box(boxes=[], texts=[], img=None, width=512, height=512):
     if len(boxes) == 0 and img is None:
         return None
 
     if img is None:
-        img = Image.new('RGB', (512, 512), (255, 255, 255))
+        img = Image.new('RGB', (height, width), (255, 255, 255))
     colors = ["red", "olive", "blue", "green", "orange", "brown", "cyan", "purple"]
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(str(Path(__file__).parent.parent / 'DejaVuSansMono.ttf'), size=18)
@@ -130,6 +130,7 @@ def draw_box(boxes=[], texts=[], img=None):
 def draw(task, input, grounding_texts, new_image_trigger, state):
     if type(input) == dict:
         image = input['image']
+        width, height = image.shape[:2]
         mask = input['mask']
     else:
         mask = input
@@ -157,15 +158,15 @@ def draw(task, input, grounding_texts, new_image_trigger, state):
     # image_scale = float(H / W)
 
     mask = binarize(mask)
-    if mask.shape != (512, 512):
-        # assert False, "should not receive any non- 512x512 masks."
-        if 'original_image' in state and state['original_image'].shape[:2] == mask.shape:
-            mask = center_crop(mask, state['inpaint_hw'])
-            image = center_crop(state['original_image'], state['inpaint_hw'])
-        else:
-            mask = np.zeros((512, 512), dtype=np.uint8)
+    # if mask.shape != (512, 512):
+    #     # assert False, "should not receive any non- 512x512 masks."
+    #     if 'original_image' in state and state['original_image'].shape[:2] == mask.shape:
+    #         mask = center_crop(mask, state['inpaint_hw'])
+    #         image = center_crop(state['original_image'], state['inpaint_hw'])
+    #     else:
+    #         mask = np.zeros((512, 512), dtype=np.uint8)
     # mask = center_crop(mask)
-    mask = binarize(mask)
+    # mask = binarize(mask)
 
     if type(mask) != np.ndarray:
         mask = np.array(mask)
@@ -207,7 +208,7 @@ def draw(task, input, grounding_texts, new_image_trigger, state):
     if len(grounding_texts) < len(state['boxes']):
         grounding_texts += [f'Obj. {bid+1}' for bid in range(len(grounding_texts), len(state['boxes']))]
 
-    box_image = draw_box(state['boxes'], grounding_texts, image)
+    box_image = draw_box(state['boxes'], grounding_texts, image, width, height)
 
     if box_image is not None and state.get('inpaint_hw', None):
         inpaint_hw = state['inpaint_hw']
@@ -412,7 +413,7 @@ class Script(scripts.Script):
             state['boxes'] = []
         sketch_image = sketch_pad['image']
         boxes = state['boxes']
-        height_width_arr = np.array([sketch_image.shape[0], sketch_image.shape[1], sketch_image.shape[0], sketch_image.shape[1]])
+        height_width_arr = np.array([sketch_image.shape[1], sketch_image.shape[0], sketch_image.shape[1], sketch_image.shape[0]])
         grounding_texts = [x.strip() for x in grounding_texts.split(';')]
         assert len(boxes) == len(grounding_texts)
         boxes = (np.asarray(boxes) / height_width_arr).tolist()
