@@ -1,0 +1,25 @@
+#generate-btn {
+    --tw-border-opacity: 1;
+    border-color: rgb(255 216 180 / var(--tw-border-opacity));
+    --tw-gradient-from: rgb(255 216 180 / .7);
+    --tw-gradient-to: rgb(255 216 180 / 0);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+    --tw-gradient-to: rgb(255 176 102 / .8);
+    --tw-text-opacity: 1;
+    color: rgb(238 116 0 / var(--tw-text-opacity));
+}
+/*#img2img_image, #img2img_image > .h-60, #img2img_image > .h-60 > div, #img2img_image > .h-60 > div > img*/
+/*{*/
+/*    height: var(--height) !important;*/
+/*    max-height: var(--height) !important;*/
+/*    min-height: var(--height) !important;*/
+/*}*/
+#mirrors a:hover {
+    cursor:pointer;
+}
+#paper-info a {
+    color:#008AD7;
+}
+#paper-info a:hover {
+    cursor: pointer;
+}
