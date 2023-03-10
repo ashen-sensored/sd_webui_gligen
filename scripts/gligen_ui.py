@@ -271,6 +271,11 @@ class Script(scripts.Script):
                         grounding_instruction = gr.Textbox(
                             label="Grounding instruction (Separated by semicolon)",
                         )
+                        strength = gr.Slider(label="Strength", labminimum=0.0, maximum=2.0, value=1.0, step=0.01, interactive=True)
+                        stage_one = gr.Slider(label="Stage One", labminimum=0.0, maximum=1.0, value=0.2, step=0.01, interactive=True)
+                        stage_two = gr.Slider(label="Stage Two", minimum=0.0, maximum=1.0, value=0.5, step=0.01, interactive=True)
+
+                        # stage_three = gr.Slider(label="Stage Three", minimum=0.0, maximum=1.0, value=0.2, step=0.01, interactive=True)
                         with gr.Row():
                             sketch_pad = ImageMask(label="Sketch Pad", elem_id="img2img_image")
                             out_imagebox = gr.Image(type="pil", label="Parsed Sketch Pad")
@@ -386,7 +391,8 @@ class Script(scripts.Script):
         process_script_params.extend([
             task,  grounding_instruction, sketch_pad,
 
-            state
+            state,
+            strength, stage_one, stage_two
         ])
 
         return process_script_params
@@ -398,16 +404,18 @@ class Script(scripts.Script):
 
 
     def process(self, p: StableDiffusionProcessing, *args, **kwargs):
-        enabled, task, grounding_texts, sketch_pad, state = args
+        enabled, task, grounding_texts, sketch_pad, state, \
+            strength, stage_one, stage_two = args
         if not enabled:
             return
         if 'boxes' not in state:
             state['boxes'] = []
-
+        sketch_image = sketch_pad['image']
         boxes = state['boxes']
+        height_width_arr = np.array([sketch_image.shape[0], sketch_image.shape[1], sketch_image.shape[0], sketch_image.shape[1]])
         grounding_texts = [x.strip() for x in grounding_texts.split(';')]
         assert len(boxes) == len(grounding_texts)
-        boxes = (np.asarray(boxes) / 512).tolist()
+        boxes = (np.asarray(boxes) / height_width_arr).tolist()
         grounding_instruction ={obj: box for obj, box in zip(grounding_texts, boxes)}
         phrase_list, location_list = [], []
         for k, v in grounding_instruction.items():
@@ -445,7 +453,7 @@ class Script(scripts.Script):
                 boxes[idx] = torch.tensor(box)
                 masks[idx] = 1
                 text_embeddings[idx] = text_feature
-
+        shared.pluggable_gli.update_stages(strength, stage_one, stage_two)
         shared.pluggable_gli.update_objs(boxes.unsqueeze(0), masks.unsqueeze(0), text_embeddings.unsqueeze(0), p.batch_size)
         shared.pluggable_gli.attach_all()
 

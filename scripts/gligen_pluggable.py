@@ -496,14 +496,14 @@ def alpha_generator(length, type=[1, 0, 0]):
     return alphas
 
 
-def timestep_to_alpha(timestep):
+def timestep_to_alpha(timestep, stage_one=0.2, stage_two=0.5, stength=1.0):
     timestep = timestep[0]
-    if timestep > 800:
-        return 1.0
-    elif 500 < timestep < 800:
+    if timestep >= (1 - stage_one) * 1000.0:
+        return 1.0 * stength
+    elif (1 - stage_two) * 1000.0 <= timestep < (1 - stage_one) * 1000.0:
         # linear
-        return (timestep - 500.0) / 300.0
-    elif 0 <= timestep < 500:
+        return (timestep - (1 - stage_two) * 1000.0) / ((stage_two - stage_one) * 1000.0) * stength
+    elif 0 <= timestep < (1 - stage_two) * 1000.0:
         return 0.0
 
 
@@ -516,6 +516,10 @@ class PluggableGLIGEN:
         self.objs=None
         self.batch_objs_input = None
         self.batch_size = 1
+        self.strength = 1.0
+        self.stage_one = 0.2
+        self.stage_two = 0.5
+
         gligen_state_dict_keys = natsorted(gligen_state_dict.keys())
         gligen_sorted_dict = OrderedDict({k: gligen_state_dict[k] for k in gligen_state_dict_keys})
         cur_gligen_dict_pointer = 0
@@ -575,6 +579,10 @@ class PluggableGLIGEN:
         self.empty_objs = self.position_net(boxes, masks, text_embeddings)
 
 
+    def update_stages(self, strength, stage_one, stage_two):
+        self.strength = strength
+        self.stage_one = stage_one
+        self.stage_two = stage_two
     def update_objs(self, boxes, masks, text_embeddings, batch_size):
         self.objs = self.position_net(boxes, masks, text_embeddings)
         self.batch_size = batch_size
@@ -592,7 +600,7 @@ class PluggableGLIGEN:
         self.unet_proxy.detach()
 
     def unet_signal(self, timesteps, x):
-        calculated_alpha = timestep_to_alpha(timesteps)
+        calculated_alpha = timestep_to_alpha(timesteps, self.stage_one, self.stage_two, self.strength)
         # calculated_alpha = torch.Tensor([calculated_alpha]).to(device=x.device, dtype=x.dtype)
         for module in self.gated_self_attention_modules:
             module.scale = calculated_alpha
