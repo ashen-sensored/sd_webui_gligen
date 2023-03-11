@@ -12,6 +12,7 @@ import cv2
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 import json
+import os
 
 from modules import devices, shared, processing
 
@@ -118,7 +119,8 @@ def draw_box(boxes=[], texts=[], img=None, width=512, height=512):
         img = Image.new('RGB', (height, width), (255, 255, 255))
     colors = ["red", "olive", "blue", "green", "orange", "brown", "cyan", "purple"]
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(str(Path(__file__).parent.parent / 'DejaVuSansMono.ttf'), size=18)
+    font_path = os.path.join(cv2.__path__[0], 'qt', 'fonts', 'DejaVuSans.ttf')
+    font = ImageFont.truetype(font_path, size=18)
     for bid, box in enumerate(boxes):
         draw.rectangle([box[0], box[1], box[2], box[3]], outline=colors[bid % len(colors)], width=4)
         anno_text = texts[bid]
