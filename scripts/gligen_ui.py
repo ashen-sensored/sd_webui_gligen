@@ -6,7 +6,6 @@ from dataclasses import dataclass
 import torch
 
 from scripts.gligen_pluggable import PluggableGLIGEN
-from scripts.sketch_helper import get_high_freq_colors, color_quantization, create_binary_matrix_base64, create_binary_mask
 import numpy as np
 import cv2
 from PIL import Image, ImageDraw, ImageFont
@@ -21,9 +20,6 @@ import gradio as gr
 
 from gradio import processing_utils
 
-import natsort
-
-from modules.script_callbacks import CFGDenoisedParams, on_cfg_denoised, on_after_ui
 
 from modules.processing import StableDiffusionProcessing
 gradio_compat = True
