@@ -3,3 +3,4 @@ Warning: experimental inital implementation, does not work with 75+ token or bat
 
 model available at https://huggingface.co/ashen-sensored/pluggable-GLIGEN/blob/main/gligen_textbox_delta.pth
 
+Please append comma seperator to end of each entry in grounding instructions like "cat,;clock,"
