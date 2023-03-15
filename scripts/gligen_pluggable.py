@@ -5,6 +5,7 @@ from torch import nn
 from ldm.modules.attention import FeedForward, SpatialTransformer
 from ldm.modules.diffusionmodules.openaimodel import UNetModel
 import itertools
+import natsort
 from natsort import natsorted
 from easing_functions import *
 import numpy as np
